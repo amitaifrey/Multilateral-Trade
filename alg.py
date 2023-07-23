@@ -89,9 +89,9 @@ def run(S, P_s, P_1, P_2):
 def draw_funcs(f_1, f_2):
     plt.plot(f_1.values(), f_1.keys(), color='blue', drawstyle='steps-post')
     plt.plot(f_2.keys(), f_2.values(), color='blue', drawstyle='steps-post')
-    plt.hlines(y=0.25, xmin = 0, xmax = 0.5, color='red')
-    plt.vlines(x=0.5, ymin=0, ymax=0.25, color='red')
-    plt.plot((0.5,0.6), (0.25,0.5), color='red')
+    #plt.hlines(y=0.25, xmin = 0, xmax = 0.5, color='red')
+    # plt.vlines(x=0.5, ymin=0, ymax=0.25, color='red')
+    # plt.plot((0.5,0.625), (0.25,0.5), color='red')
     plt.show()
 
 def fixed_prices(v_s, v_1, v_2, p1, p2):
@@ -120,14 +120,14 @@ def calc_gft(f_1, f_2, S):
         vs = np.random.uniform(0, 1)
         v1 = np.random.uniform(0, 1)
         v2 = np.random.uniform(0, 1.0 / 2.0)
-        opt_gft = fixed_prices(vs, v1, v2, max(0.5, v2*0.4 + 0.4), max(0.25, v1*2.5 - 1))
+        opt_gft = fixed_prices(vs, v1, v2, max(0.5, v2*0.5 + 3.0/8.0), max(0.25, v1*2 - 0.75))
         learned_gft = array_mech(vs, v1, v2, f_1, f_2, S)
         opt += opt_gft
         learned += learned_gft
     print(opt, learned)
     print('OPT: %f\n MECH: %f\n PERC: %f\n' % (opt / T, learned / T, learned / opt))
 
-def create_dists():
+def sample_dists():
     S_s = np.sort(np.random.uniform(0, 1, SAMPLE_SIZE))
     S_1 = np.sort(np.random.uniform(0, 1, SAMPLE_SIZE))
     S_2 = np.sort(np.random.uniform(0, 1, SAMPLE_SIZE) / 2.0)
@@ -137,18 +137,30 @@ def create_dists():
     P_2 = np.where(np.isin(S, S_2), 1 / SAMPLE_SIZE, 0)
     return S, P_s, P_1, P_2
 
-def create_dists_ex():
-    S_s = np.array([0, 0.6])
-    S_1 = np.array([0.4, 1])
-    S_2 = np.array([0.2])
+def create_dists_grid():
+    S_s  = np.arange(0, 1, 1/SAMPLE_SIZE)
+    S_1 = np.arange(0, 1, 1 / SAMPLE_SIZE)
+    #S_2 = np.arange(0, 0.5, 1 / (2 * SAMPLE_SIZE))
+    S_2 = np.concatenate((np.arange(0, 0.1, 1 / (2*SAMPLE_SIZE)), np.arange(0.3, 0.4, 1 / (2*SAMPLE_SIZE)), np.arange(0.5, 0.6, 1 / (2*SAMPLE_SIZE)), np.arange(0.7, 0.8, 1 / (2*SAMPLE_SIZE)), np.arange(0.9, 1.0, 1 / (2*SAMPLE_SIZE))))
+    print(S_2)
+    S = np.sort(np.unique(np.concatenate((S_s, S_1, S_2, [0, 1]))))
+    P_s = np.where(np.isin(S, S_s), 1 / SAMPLE_SIZE, 0)
+    P_1 = np.where(np.isin(S, S_1), 1 / SAMPLE_SIZE, 0)
+    P_2 = np.where(np.isin(S, S_2), 1 / SAMPLE_SIZE, 1e-8)
+    return S, P_s, P_1, P_2
+
+def create_dists_disc():
+    S_s = np.array([0])
+    S_1 = np.array([0.2, 0.4, 0.6, 0.8, 1.0])
+    S_2 = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
     S = np.sort(np.unique(np.concatenate((S_s, S_1, S_2))))
-    P_s = np.array([0.5, 0.0, 0.0, 0.5, 0.0])
-    P_1 = np.array([0.0, 0.0, 0.5, 0.0, 0.5])
-    P_2 = np.array([0.0, 1.0, 0.0, 0.0, 0.0])
+    P_s = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    P_1 = np.array([0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0])
+    P_2 = np.array([0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0])
     return S, P_s, P_1, P_2
 
 if __name__ == "__main__":
-    S, P_s, P_1, P_2 = create_dists()
+    S, P_s, P_1, P_2 = create_dists_disc()
     f_1, f_2 = run(S, P_s, P_1, P_2)
     draw_funcs(f_1, f_2)
-    calc_gft(f_1, f_2, S)
+    #calc_gft(f_1, f_2, S)
