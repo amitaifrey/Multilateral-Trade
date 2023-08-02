@@ -23,7 +23,7 @@ def init_seller_arrays(S, P_s):
 def get_best_price(S, C_s, C_b, E_s, E_b):
     max_price, max_gft = 0, -1
     for i in range(1, len(S)):
-        gft = (E_b[i - 1] - E_s[i]) * C_b[i - 1] * C_s[i]
+        gft = (E_b[i] - E_s[i]) * C_b[i] * C_s[i]
         if gft >= max_gft:
             max_price, max_gft = i, gft
     return max_price
