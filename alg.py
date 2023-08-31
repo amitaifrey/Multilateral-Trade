@@ -1,14 +1,8 @@
 import numpy as np
 import tqdm
-import matplotlib
-import matplotlib.pyplot as plt
 import plot
 
-matplotlib.rc('text', usetex=True)
-matplotlib.rc('font', **{'family': "sans-serif"})
-plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
-
-SAMPLE_SIZE = 6000
+SAMPLE_SIZE = 4000
 MIN_PROB = 1 / SAMPLE_SIZE
 
 
@@ -41,17 +35,21 @@ def get_best_price(S, C_s, C_b, E_s, E_b):
 def init_matrix(S, P_1, P_2, C_s, E_s):
     G = np.zeros((len(S), len(S)))
     G[-1, -1] = P_1[-1] * P_2[-1] * (S[-1] - E_s[-1]) * C_s[-1]
-    for i in range(len(S) - 2, 0, -1):
-        G[i, -1] = P_1[-1] * P_2[i] * (S[-1] - E_s[-1]) + G[i + 1, -1]
-        G[-1, i] = P_1[i] * P_2[-1] * (S[-1] - E_s[-1]) + G[-1, i + 1]
+    # for i in range(len(S) - 2, 0, -1):
+    #     G[i, -1] = P_1[-1] * P_2[i] * (S[-1] - E_s[-1]) + G[i + 1, -1]
+    #     G[-1, i] = P_1[i] * P_2[-1] * (S[-1] - E_s[-1]) + G[-1, i + 1]
     return G
 
 
 def fill_matrix(S, P_1, P_2, C_s, C_1, C_2, E_s, E_1, E_2, G, p_1, p_2):
-    for i in tqdm.tqdm(range(len(S) - 2, p_1 - 1, -1)):
-        for j in range(len(S) - 2, p_2 - 1, -1):
-            G_1 = P_1[i] * C_2[j] * (E_2[j] - E_s[j]) * C_s[j] + G[i + 1, j]
-            G_2 = P_2[j] * C_1[i] * (E_1[i] - E_s[i]) * C_s[i] + G[i, j + 1]
+    for i in tqdm.tqdm(range(len(S) - 1, p_1 - 1, -1)):
+        for j in range(len(S) - 1, p_2 - 1, -1):
+            G_1 = 0
+            G_2 = 0
+            if i < len(S) - 1:
+                G_1 = P_1[i] * C_2[j] * (E_2[j] - E_s[j]) * C_s[j] + G[i + 1, j]
+            if j < len(S) - 1:
+                G_2 = P_2[j] * C_1[i] * (E_1[i] - E_s[i]) * C_s[i] + G[i, j + 1]
             G[i, j] = max(G_1, G_2)
 
 
@@ -170,11 +168,11 @@ def sample_dists():
 
 def create_dists_grid():
     step_size = 1.0 / SAMPLE_SIZE
-    S_s = np.arange(0.0, 0.75, step_size)
-    S_1 = np.concatenate((np.arange(0.0, 0.125, step_size), np.arange(0.25, 0.375, step_size), np.arange(0.5, 0.625, step_size), np.arange(0.75, 0.875, step_size)))
-    S_2 = S_1 + 0.125
-    # step_size = 0.2 /  SAMPLE_SIZE
-    # S_2 = np.concatenate((np.arange(0, 0.1, step_size), np.arange(0.9, 1.0, step_size)))
+    S_s = np.arange(0.0, 1.0, step_size)
+    S_1 = np.arange(0.0, 1.0, step_size)
+    S_2 = np.arange(0.0, 0.5, step_size)
+    #S_1 = np.concatenate((np.arange(0.0, 0.5, step_size*3), np.arange(0.5, 3.0/4.0, step_size)))
+    #S_2 = np.concatenate((np.arange(0.0, 0.25, step_size), np.arange(0.5, 1.0, step_size)))
     S = np.sort(np.unique(np.concatenate((S_s, S_1, S_2, [0, 1]))))
     P_s = np.where(np.isin(S, S_s), 1 / SAMPLE_SIZE, 0)
     P_1 = np.where(np.isin(S, S_1), 1 / SAMPLE_SIZE, 0)
